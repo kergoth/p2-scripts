@@ -90,7 +90,11 @@ if [ -n "$bpool" -a "$bpool" = "$destination" ]; then
     roaming="-roaming"
 fi
 
-specifiedIUs=$(echo $* | sed 's/[[:space:]][[:space:]]*/,/g')
+specifiedIUs=
+for arg; do
+    specifiedIUs="$specifiedIUs,$arg"
+done
+specifiedIUs="${specifiedIUs#,}"
 runEclipse -application org.eclipse.equinox.p2.director \
     ${repositories} \
     ${profileProps:+-profileProperties "$profileProps"} \
