@@ -18,6 +18,7 @@ usage()
     echo
     echo "  -v  be more verbose"
     echo "  -r  replace the specified IUs (i.e., uninstall and install)"
+    echo "  -u  uninstall the specified IUs"
     echo "  -b  use bundle-pool in bpool"
     echo "  -c  specify os-ws-arch configuration for provisioning"
     echo "  -P  install a product (sets org.eclipse.update.install.features=true)"
@@ -37,7 +38,8 @@ usage()
     exit 1
 }
 
-while getopts A:vrb:c:PVd: c; do
+install=true
+while getopts A:vrb:c:PVd:u c; do
     case $c in
     A)  artifRepos=$(rewriteRepoLocs $OPTARG);;
     v)  verbose=true;;
@@ -47,6 +49,7 @@ while getopts A:vrb:c:PVd: c; do
     P)	profileProps="org.eclipse.update.install.features=true";;
     V)	verifyOnly="-verifyOnly";;
     d)	p2DataArea=$OPTARG;;
+    u)	uninstall=true; install=;;
     \?)	usage;;
     esac
 done
@@ -108,6 +111,7 @@ runEclipse -application org.eclipse.equinox.p2.director \
     ${configurationDir:+-configuration "$destination/$configurationDir"} \
     -profile "$profile" \
     ${replace:+-uninstallIU "$specifiedIUs"} \
-    -installIU "$specifiedIUs" \
+    ${uninstall:+-uninstallIU "$specifiedIUs"} \
+    ${install:+-installIU "$specifiedIUs"} \
     -vmargs \
     ${p2DataArea:+-Declipse.p2.data.area="$destination/${p2DataArea}"}
