@@ -16,7 +16,15 @@ error() {
 # Check if $1, a local directory, looks like a p2 repository
 # Return 0 if a local repo, or 1 if not
 isLocalP2Repo() {
-    if [ ! -d "$1" ]; then
+    if [ -f "$1" ]; then
+	case "$1" in
+	    *.zip)
+		;;
+	    *)
+		return 1
+		;;
+	esac
+    elif [ ! -d "$1" ]; then
 	return 1
     elif [ ! -f "$1/artifacts.xml" -a ! -f "$1/artifacts.jar" \
 	    -a ! -f "$1/compositeArtifacts.jar" \
@@ -39,20 +47,28 @@ isLocalP2Repo() {
 # returns the rewritten repository location
 rewriteRepoLoc() {
     case "$1" in
+      jar:*)
+	echo "$1"
+	;;
       http://*|https://*|ftp://*|sftp://*)
 	echo "$1"
 	;;
       file:*)
 	path=$(echo "$1" | cut -d: -f2-)
-        isLocalP2Repo "$path" || error "$1: not a repository"
-	echo "file:$(absolute "$path")"
+	isLocalP2Repo "$path" || error "$1: not a repository"
+	if [ -f "$path" ]; then
+	    echo "jar:file:$(absolute "$path")!/"
+	else
+	    echo "file:$(absolute "$path")"
+	fi
 	;;
       *)
-        if [ ! -d "$1" ]; then
-            error "$1: repository location does not exist"
-        fi
         isLocalP2Repo "$1" || error "$1: not a repository"
-	echo "file:$(absolute "$1")"
+	if [ -f "$1" ]; then
+	    echo "jar:file:$(absolute "$1")!/"
+	else
+	    echo "file:$(absolute "$1")"
+	fi
     esac
 }
 
